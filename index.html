@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>Je ne sais rien mais je dirai tout</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Space+Grotesk:wght@600;700&display=swap">
+<style>
+/* Layout: écran unique plein hauteur, fond blanc, gros boutons "3D" façon hyper-casual.
+   Une seule scène par écran : accueil, partie, résultat. */
+:root{
+  --bg:#ffffff;
+  --ink:#1c1b3a;
+  --ink-soft:#6c6b85;
+  --line:#e6e6f0;
+  --red:#f03e50;
+  --red-deep:#b92336;
+  --green:#0a9150;
+  --green-deep:#066b3a;
+  --blue:#2f52e0;
+  --blue-deep:#1f37a3;
+  --sun:#ffc533;
+  --display:"Baloo 2","Arial Rounded MT Bold","Trebuchet MS",system-ui,sans-serif;
+  --num:"Space Grotesk",ui-monospace,"SF Mono",Menlo,monospace;
+  color-scheme:light;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+body{
+  background:var(--bg);color:var(--ink);font-family:var(--display);font-weight:600;
+  padding-block:12px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+  overflow:hidden;overscroll-behavior:none;user-select:none;-webkit-user-select:none;
+}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;touch-action:manipulation}
+button:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+
+.app{height:100%;max-width:520px;margin:0 auto;position:relative}
+.screen{height:100%;display:flex;flex-direction:column;gap:12px;animation:fade .35s ease both}
+@keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* ---------- Boutons 3D ---------- */
+.btn{
+  --c:var(--red);--d:var(--red-deep);
+  width:100%;min-height:64px;border-radius:22px;background:var(--c);color:#fff;
+  font-size:clamp(22px,6.4vw,30px);font-weight:800;letter-spacing:.02em;
+  box-shadow:0 7px 0 var(--d);transform:translateY(0);
+  transition:transform .08s,box-shadow .08s;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+}
+.btn:active{transform:translateY(6px);box-shadow:0 1px 0 var(--d)}
+.btn.ghost{--c:#fff;--d:var(--line);color:var(--ink);border:2.5px solid var(--line);min-height:56px;font-size:20px}
+.btn svg{width:.9em;height:.9em}
+
+/* ---------- Accueil ---------- */
+.eyebrow{margin:6px 0 0;text-align:center;font-family:var(--num);font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft)}
+.title{margin:0;text-align:center;font-weight:800;line-height:.98;font-size:clamp(34px,11.5vw,58px);text-wrap:balance}
+[hidden]{display:none!important}
+.title span{display:block;color:var(--red);position:relative;width:max-content;max-width:100%;margin:4px auto 0;font-size:.8em;white-space:nowrap}
+.title span::after{content:"";position:absolute;left:2%;right:2%;bottom:-2px;height:9px;
+  background:radial-gradient(circle at 6px 0,transparent 5px,var(--sun) 5.5px 8px,transparent 8.5px) 0 0/12px 9px repeat-x;opacity:.95}
+.home-stage{flex:1 1 0;min-height:120px;position:relative;margin-top:4px}
+.home-stage button{position:absolute;inset:0 0 14px;width:100%}
+.home-stage img{width:100%;height:100%;object-fit:contain;object-position:50% 100%;animation:bob 2.6s ease-in-out infinite;transform-origin:50% 100%}
+.home-stage img.pop{animation:pop .5s cubic-bezier(.2,1.5,.4,1) both,bob 2.6s ease-in-out .5s infinite}
+.shadow{position:absolute;left:50%;bottom:0;width:46%;max-width:180px;height:14px;margin-left:-23%;border-radius:50%;background:rgba(28,27,58,.14);animation:shadow 2.6s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0) rotate(-1.2deg)}50%{transform:translateY(-8px) rotate(1.2deg)}}
+@keyframes shadow{0%,100%{transform:scaleX(1);opacity:1}50%{transform:scaleX(.82);opacity:.7}}
+.hint{margin:0;text-align:center;font-size:13px;color:var(--ink-soft);font-family:var(--num)}
+
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:12px;border:0;padding:0;margin:0}
+.mode{
+  --m:var(--green);--md:var(--green-deep);
+  position:relative;border:3px solid var(--line);border-radius:22px;padding:14px 8px 12px;
+  display:flex;flex-direction:column;align-items:center;gap:6px;background:#fff;
+  transition:transform .12s,border-color .12s,box-shadow .12s;min-width:0;
+}
+.mode[data-mode="fr"]{--m:var(--blue);--md:var(--blue-deep)}
+.mode .name{font-size:clamp(20px,5.6vw,26px);font-weight:800;line-height:1}
+.mode .count{font-family:var(--num);font-size:12px;font-weight:700;color:var(--ink-soft);letter-spacing:.04em}
+.mode[aria-checked="true"]{border-color:var(--m);box-shadow:0 6px 0 var(--md);transform:translateY(-3px)}
+.mode[aria-checked="true"] .count{color:var(--m)}
+.mode[aria-checked="true"]::after{content:"";position:absolute;top:-10px;right:-6px;width:26px;height:26px;border-radius:50%;background:var(--m) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center/70% no-repeat;border:2px solid #fff}
+.flag{width:54px;height:36px;border-radius:7px;overflow:hidden;border:2px solid var(--line);display:block}
+.flag.mg{background:linear-gradient(#f03e50 0 50%,#0a9150 50% 100%);position:relative}
+.flag.mg::before{content:"";position:absolute;left:0;top:0;bottom:0;width:33%;background:#fff}
+.flag.fr{background:linear-gradient(90deg,#2f52e0 0 33.3%,#fff 33.3% 66.6%,#f03e50 66.6%)}
+
+/* ---------- Partie ---------- */
+.bar{display:grid;grid-template-columns:48px 1fr 48px;align-items:center;gap:8px}
+.quit{width:48px;height:48px;border-radius:16px;border:2.5px solid var(--line);display:grid;place-items:center;color:var(--ink-soft)}
+.quit svg{width:20px;height:20px}
+.timer{text-align:center;font-family:var(--num);font-weight:700;font-size:clamp(34px,10.5vw,48px);line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.timer small{font-size:.5em;color:var(--ink-soft)}
+.counter{font-family:var(--num);font-weight:700;font-size:14px;text-align:right;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.progress{height:10px;border-radius:99px;background:var(--line);overflow:hidden}
+.progress i{display:block;height:100%;width:0;border-radius:99px;background:var(--m,var(--red));transition:width .3s cubic-bezier(.3,1.4,.5,1)}
+.play-main{flex:1 1 0;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:14px}
+.stage{flex:0 1 min(48dvh,440px);min-height:120px;position:relative}
+.hero{position:absolute;inset:0 0 14px}
+.hero img{width:100%;height:100%;object-fit:contain;object-position:50% 100%;transform-origin:50% 100%}
+.hero img.pop{animation:pop .5s cubic-bezier(.2,1.5,.4,1) both}
+@keyframes pop{0%{transform:scale(.6) translateY(30px) rotate(-6deg);opacity:0}100%{transform:none;opacity:1}}
+.word{
+  margin:0;text-align:center;font-weight:800;line-height:1.02;padding:14px 10px 12px;
+  border-radius:24px;border:3px solid var(--m,var(--ink));background:#fff;color:var(--ink);
+  box-shadow:0 7px 0 var(--m,var(--ink));min-height:92px;display:grid;place-items:center;
+  overflow-wrap:normal;hyphens:none;text-wrap:balance;
+}
+.word.pop{animation:wordpop .38s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes wordpop{0%{transform:scale(.85);opacity:0}100%{transform:none;opacity:1}}
+.go{--c:var(--m);--d:var(--md);margin-top:2px}
+
+/* ---------- Résultat ---------- */
+.end{justify-content:center;text-align:center;gap:14px}
+.end .stage{flex:0 1 min(30dvh,260px)}
+.end h2{margin:0;font-size:clamp(34px,10vw,48px);font-weight:800;line-height:1}
+.final{font-family:var(--num);font-weight:700;font-size:clamp(46px,16vw,76px);line-height:1;font-variant-numeric:tabular-nums;color:var(--m);letter-spacing:-.02em}
+.final small{font-size:.5em;opacity:.7}
+.sub{margin:0;font-size:17px;color:var(--ink-soft)}
+.record{margin:0;font-family:var(--num);font-weight:700;font-size:14px;color:var(--ink-soft)}
+.record.new{display:inline-block;align-self:center;background:var(--sun);color:var(--ink);padding:6px 14px;border-radius:99px;font-size:15px;animation:pop .5s cubic-bezier(.2,1.5,.4,1) both}
+.end-actions{display:grid;gap:12px;margin-top:6px}
+
+.confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:5}
+.confetti i{position:absolute;top:-16px;width:10px;height:16px;border-radius:3px;animation:fall var(--t) linear var(--dl) forwards}
+@keyframes fall{to{transform:translate(var(--x),105vh) rotate(var(--r))}}
+
+@media (max-height:640px){
+  .eyebrow{display:none}
+  .btn{min-height:56px}
+  .word{min-height:76px;padding:10px 8px}
+  .mode{padding:10px 6px 8px}
+  .flag{width:44px;height:28px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+  .confetti{display:none}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+  <!-- ACCUEIL -->
+  <section class="screen" id="home">
+    <p class="eyebrow">Jeu chrono · 2 modes</p>
+    <h1 class="title">Je ne sais rien<span>mais je dirai tout</span></h1>
+    <div class="home-stage">
+      <button type="button" id="homeHero" aria-label="Changer de personnage"><img id="homeImg" alt=""></button>
+      <div class="shadow"></div>
+    </div>
+    <p class="hint">Touche le personnage pour en changer</p>
+    <fieldset class="modes" role="radiogroup" aria-label="Choisir le mode de jeu">
+      <button type="button" class="mode" role="radio" aria-checked="true" data-mode="mg">
+        <span class="flag mg"></span><span class="name">Malagasy</span><span class="count" data-count="mg"></span>
+      </button>
+      <button type="button" class="mode" role="radio" aria-checked="false" data-mode="fr">
+        <span class="flag fr"></span><span class="name">Français</span><span class="count" data-count="fr"></span>
+      </button>
+    </fieldset>
+    <button type="button" class="btn" id="play">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5z"/></svg>
+      JOUER
+    </button>
+  </section>
+
+  <!-- PARTIE -->
+  <section class="screen" id="game" hidden>
+    <div class="bar">
+      <button type="button" class="quit" id="quit" aria-label="Quitter la partie">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg>
+      </button>
+      <div class="timer" id="timer" role="timer" aria-live="off">00:00<small>.0</small></div>
+      <div class="counter" id="counter">1/17</div>
+    </div>
+    <div class="progress" aria-hidden="true"><i id="bar"></i></div>
+    <div class="play-main">
+      <div class="stage"><div class="hero"><img id="gameImg" alt=""></div><div class="shadow" style="animation:none"></div></div>
+      <p class="word" id="word" aria-live="polite"></p>
+    </div>
+    <button type="button" class="btn go" id="next"><span id="nextLabel">Suivant</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    </button>
+  </section>
+
+  <!-- RÉSULTAT -->
+  <section class="screen end" id="end" hidden>
+    <div class="stage"><div class="hero"><img id="endImg" alt=""></div><div class="shadow" style="animation:none"></div></div>
+    <h2>Terminé !</h2>
+    <div class="final" id="final">00:00<small>.00</small></div>
+    <p class="sub" id="endSub"></p>
+    <p class="record" id="record"></p>
+    <div class="end-actions">
+      <button type="button" class="btn" id="again">REJOUER</button>
+      <button type="button" class="btn ghost" id="menu">Changer de mode</button>
+    </div>
+  </section>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var IMGS = ["assets/perso-01.webp", "assets/perso-02.webp", "assets/perso-03.webp", "assets/perso-04.webp", "assets/perso-05.webp", "assets/perso-06.webp", "assets/perso-07.webp", "assets/perso-08.webp", "assets/perso-09.webp", "assets/perso-10.webp", "assets/perso-11.webp", "assets/perso-12.webp", "assets/perso-13.webp", "assets/perso-14.webp", "assets/perso-15.webp", "assets/perso-16.webp", "assets/perso-17.webp", "assets/perso-18.webp", "assets/perso-19.webp"];
+  var MODES = {
+    mg:{label:"Malagasy",unit:"teny",color:"var(--green)",deep:"var(--green-deep)",
+      words:["Fitiavan tanindrazana","Fifampiresahana","Tanjona","Malagasy","Fampandrosoana","Dinika","Soativina","Fihavanana","Any ivelany","Raiamandreny","Fiaraha miasa","Fandraisan'anjara","Tetikasa","Firaisankiana","Mpiantsehatra","Eto toerana","Vahoaka madinika","Rariny"]},
+    fr:{label:"Français",unit:"mots",color:"var(--blue)",deep:"var(--blue-deep)",
+      words:["Acteurs","Citoyenneté","Contrat","Décentralisation","Démocratie","Développement","Diagnostic partagé","Dimension interculturelle","Habitants","Lien social","Local","Mondialisation","Proximité","Partenariat","Participation","Projet","Solidarité"]}
+  };
+  var $ = function(id){return document.getElementById(id)};
+  var screens = {home:$("home"),game:$("game"),end:$("end")};
+  var app = $("app");
+  var mode = "mg", queue = [], idx = 0, bag = [], lastImg = -1;
+  var t0 = 0, raf = 0, running = false, elapsed = 0;
+
+  function show(name){
+    for(var k in screens){screens[k].hidden = (k!==name)}
+  }
+  function setMode(m){
+    mode = m;
+    var cfg = MODES[m];
+    app.style.setProperty("--m",cfg.color);
+    app.style.setProperty("--md",cfg.deep);
+    document.querySelectorAll(".mode").forEach(function(b){b.setAttribute("aria-checked",b.dataset.mode===m?"true":"false")});
+    $("play").style.setProperty("--c",cfg.color);
+    $("play").style.setProperty("--d",cfg.deep);
+    try{localStorage.setItem("jnsr-mode",m)}catch(e){}
+  }
+  function shuffle(a){
+    a = a.slice();
+    for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}
+    return a;
+  }
+  /* Sac d'images mélangé : chaque image sort une fois avant que le sac soit refait, jamais deux fois de suite. */
+  function nextImg(){
+    if(!bag.length){
+      bag = shuffle(IMGS.map(function(_,i){return i}));
+      if(bag.length>1 && bag[bag.length-1]===lastImg){var s=bag.pop();bag.unshift(s)}
+    }
+    lastImg = bag.pop();
+    return IMGS[lastImg];
+  }
+  function retrigger(el,cls){el.classList.remove(cls);void el.offsetWidth;el.classList.add(cls)}
+
+  function fitWord(){
+    /* Mesure le plus long mot au canvas, puis réduit la taille jusqu'à ce qu'il tienne dans le cadre */
+    var w = $("word"), avail = w.clientWidth-32;
+    var toks = w.textContent.split(/\s+/);
+    var fam = getComputedStyle(w).fontFamily, s = Math.min(window.innerWidth*0.15,64);
+    for(; s>18; s--){
+      mctx.font = "800 "+s+"px "+fam;
+      var m = 0; toks.forEach(function(t){m = Math.max(m,mctx.measureText(t).width)});
+      if(m<=avail) break;
+    }
+    w.style.fontSize = s+"px";
+  }
+  var mctx = document.createElement("canvas").getContext("2d");
+  function fmt(ms,cs){
+    var total = Math.floor(ms/10);
+    var c = total%100, s = Math.floor(total/100)%60, m = Math.floor(total/6000);
+    var mm = (m<10?"0":"")+m, ss = (s<10?"0":"")+s;
+    return cs ? mm+":"+ss+"<small>."+(c<10?"0":"")+c+"</small>" : mm+":"+ss+"<small>."+Math.floor(c/10)+"</small>";
+  }
+  function tick(){
+    if(!running) return;
+    elapsed = performance.now()-t0;
+    $("timer").innerHTML = fmt(elapsed,false);
+    raf = requestAnimationFrame(tick);
+  }
+
+  function renderWord(first){
+    var total = queue.length;
+    $("word").textContent = queue[idx];
+    fitWord();
+    retrigger($("word"),"pop");
+    var img = $("gameImg");
+    img.src = nextImg();
+    retrigger(img,"pop");
+    $("counter").textContent = (idx+1)+"/"+total;
+    $("bar").style.width = (idx/total*100)+"%";
+    $("nextLabel").textContent = idx===total-1 ? "Terminer" : "Suivant";
+    if(!first && navigator.vibrate){try{navigator.vibrate(12)}catch(e){}}
+  }
+
+  function start(){
+    queue = shuffle(MODES[mode].words);
+    idx = 0;
+    show("game");
+    renderWord(true);
+    /* Le chrono démarre au clic sur JOUER */
+    running = true; t0 = performance.now(); elapsed = 0;
+    $("timer").innerHTML = fmt(0,false);
+    cancelAnimationFrame(raf); raf = requestAnimationFrame(tick);
+  }
+  function next(){
+    if(idx < queue.length-1){idx++;renderWord(false)}
+    else finish();
+  }
+  function finish(){
+    running = false; cancelAnimationFrame(raf);
+    elapsed = performance.now()-t0;
+    $("bar").style.width = "100%";
+    var cfg = MODES[mode];
+    $("final").innerHTML = fmt(elapsed,true);
+    $("endSub").textContent = queue.length+" "+cfg.unit+" · mode "+cfg.label;
+    var key = "jnsr-best-"+mode, best = null, rec = $("record");
+    try{var v = parseFloat(localStorage.getItem(key)); if(v>0) best = v}catch(e){}
+    var isNew = (best===null || elapsed<best);
+    if(isNew){try{localStorage.setItem(key,String(elapsed))}catch(e){}}
+    if(isNew && best!==null){rec.className="record new";rec.textContent="Nouveau record !"}
+    else if(best===null){rec.className="record";rec.textContent="Premier temps enregistré"}
+    else{rec.className="record";rec.textContent="Meilleur temps : "+fmt(best,true).replace(/<\/?small>/g,"")}
+    $("endImg").src = nextImg();
+    retrigger($("endImg"),"pop");
+    show("end");
+    if(isNew) confetti();
+    if(navigator.vibrate){try{navigator.vibrate([30,40,30])}catch(e){}}
+  }
+  function quit(){
+    running = false; cancelAnimationFrame(raf);
+    show("home");
+  }
+  function confetti(){
+    if(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    var box = document.createElement("div"); box.className="confetti"; box.setAttribute("aria-hidden","true");
+    var cols = ["#f03e50","#0a9150","#2f52e0","#ffc533","#1c1b3a"];
+    for(var i=0;i<46;i++){
+      var p = document.createElement("i");
+      p.style.left = Math.random()*100+"%";
+      p.style.background = cols[i%cols.length];
+      p.style.setProperty("--x",(Math.random()*160-80)+"px");
+      p.style.setProperty("--r",(Math.random()*900-450)+"deg");
+      p.style.setProperty("--t",(2.2+Math.random()*1.6)+"s");
+      p.style.setProperty("--dl",(Math.random()*.5)+"s");
+      box.appendChild(p);
+    }
+    document.body.appendChild(box);
+    setTimeout(function(){box.remove()},4600);
+  }
+
+  /* ---- init ---- */
+  IMGS.forEach(function(src){var i=new Image();i.src=src});
+  Object.keys(MODES).forEach(function(k){
+    var el = document.querySelector('[data-count="'+k+'"]');
+    el.textContent = MODES[k].words.length+" "+MODES[k].unit;
+  });
+  try{var saved = localStorage.getItem("jnsr-mode"); if(saved && MODES[saved]) mode = saved}catch(e){}
+  setMode(mode);
+  $("homeImg").src = nextImg();
+  $("homeHero").addEventListener("click",function(){
+    var img = $("homeImg"); img.src = nextImg(); retrigger(img,"pop");
+  });
+  document.querySelectorAll(".mode").forEach(function(b){b.addEventListener("click",function(){setMode(b.dataset.mode)})});
+  $("play").addEventListener("click",start);
+  $("next").addEventListener("click",next);
+  $("quit").addEventListener("click",quit);
+  $("again").addEventListener("click",start);
+  $("menu").addEventListener("click",function(){show("home")});
+  window.addEventListener("resize",function(){if(!screens.game.hidden) fitWord()});
+  if(document.fonts && document.fonts.ready){document.fonts.ready.then(function(){if(!screens.game.hidden) fitWord()})}
+  document.addEventListener("keydown",function(e){
+    if(screens.game.hidden) return;
+    if(e.key==="ArrowRight"){e.preventDefault();next()}
+  });
+  /* mise à jour à chaud : garde la partie en cours si possible */
+  show("home");
+})();
+</script>
+</body>
+</html>
